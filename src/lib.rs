@@ -6,7 +6,7 @@
 //! 
 //! ```toml
 //! [dependencies]
-//! pinata_sdk = "0.1.0"
+//! pinata_sdk = "0.1.1"
 //! ```
 //!  
 //! ## Initializing the API

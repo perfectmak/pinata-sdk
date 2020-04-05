@@ -1,6 +1,7 @@
 # {{crate}}
 
 ![Rust](https://github.com/perfectmak/pinata-sdk/workflows/Rust/badge.svg)
+![pinata-sdk](https://docs.rs/pinata-sdk/badge.svg)
 
 {{readme}}
 
