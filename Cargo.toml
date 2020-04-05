@@ -1,10 +1,11 @@
 [package]
 name = "pinata-sdk"
-version = "0.1.0"
+version = "0.1.1"
 keywords = ["ipfs", "api", "pinata"]
 categories = ["api-bindings", "web-programming::http-client"]
 description = "Rust SDK for the Pinata IPFS platform"
 authors = ["Perfect Makanju <oss@perfects.engineering>"]
+documentation = "https://docs.rs/pinata_sdk"
 repository = "https://github.com/perfectmak/pinata-sdk"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
