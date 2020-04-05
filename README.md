@@ -1,5 +1,7 @@
 # pinata-sdk
 
+![Rust](https://github.com/perfectmak/pinata-sdk/workflows/Rust/badge.svg)
+
 The `pinata_sdk` provides the easieset path for interacting with the [Pinata API](https://pinata.cloud/documentation#GettingStarted).
 
 ### Setup
