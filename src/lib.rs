@@ -89,6 +89,7 @@ use utils::api_url;
 use api::internal::*;
 
 pub use api::data::*;
+pub use api::metadata::*;
 pub use errors::ApiError;
 
 mod api;
@@ -270,6 +271,21 @@ impl PinataApi {
   /// Unpin content previously uploaded to the Pinata's IPFS nodes.
   pub async fn unpin(&self, hash: &str) -> Result<(), ApiError> {
     let response = self.client.delete(&api_url(&format!("/pinning/unpin/{}", hash)))
+      .send()
+      .await?;
+
+    if response.status().is_success() {
+      Ok(())
+    } else {
+      let error = response.json::<PinataApiError>().await?;
+      Err(ApiError::GenericError(error.message()))
+    }
+  }
+
+  /// Change name and custom key values associated for a piece of content stored on Pinata.
+  pub async fn change_hash_metadata(&self, change: ChangePinMetadata) -> Result<(), ApiError> {
+    let response = self.client.put(&api_url("/pinning/hashMetadata"))
+      .json(&change)
       .send()
       .await?;
 

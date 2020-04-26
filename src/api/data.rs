@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use crate::api::metadata::{PinMetadata, MetadataKeyValues, MetadataValue};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 /// All the currently supported regions on Pinata
@@ -88,20 +89,6 @@ pub struct PinByHashResult {
 }
 
 #[derive(Serialize)]
-/// Pin metadata stored along with files pinned.
-/// 
-/// The PinMetadata object will not be part of your content added to IPFS
-/// 
-/// Pinata simply stores the metadata provided to help you easily query 
-/// the content you've pinned with Pinata.
-pub struct PinMetadata {
-  /// Custom name used for referencing your pinned content.
-  pub name: Option<String>,
-  /// List of key value items to attach with the pinned content
-  pub keyvalues: HashMap<String, String>,
-}
-
-#[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 /// Used to add additional options when pinning by hash
 pub struct PinOptions {
@@ -153,7 +140,7 @@ impl PinByHash {
   }
 
   /// Consumes the current PinByHash and returns a new PinByHash with keyvalues metadata set
-  pub fn set_metadata(self, keyvalues: HashMap<String, String>) -> PinByHash {
+  pub fn set_metadata(self, keyvalues: MetadataKeyValues) -> PinByHash {
     PinByHash {
       hash_to_pin: self.hash_to_pin,
       pinata_metadata: Some(PinMetadata {
@@ -165,7 +152,7 @@ impl PinByHash {
   }
 
   /// Consumes the current PinByHash and returns a new PinByHash with metadata name and keyvalues set
-  pub fn set_metadata_with_name<S>(self, name: S, keyvalues: HashMap<String, String>) -> PinByHash 
+  pub fn set_metadata_with_name<S>(self, name: S, keyvalues: HashMap<String, MetadataValue>) -> PinByHash 
     where S: Into<String>
   {
     PinByHash {
@@ -232,7 +219,7 @@ impl <S> PinByJson<S>
   }
 
   /// Consumes the current PinByJson<S> and returns a new PinByJson<S> with keyvalues metadata set
-  pub fn set_metadata(mut self, keyvalues: HashMap<String, String>) -> PinByJson<S> {
+  pub fn set_metadata(mut self, keyvalues: MetadataKeyValues) -> PinByJson<S> {
     self.pinata_metadata = Some(PinMetadata {
       name: None,
       keyvalues,
@@ -243,7 +230,7 @@ impl <S> PinByJson<S>
   /// Consumes the current PinByJson<S> and returns a new PinByJson<S> with keyvalues metadata set
   pub fn set_metadata_with_name<IntoStr>(
     mut self, name: IntoStr,
-    keyvalues: HashMap<String, String>
+    keyvalues: MetadataKeyValues
   ) -> PinByJson<S> 
     where IntoStr: Into<String>
   {
@@ -306,7 +293,7 @@ impl PinByFile {
   }
 
   /// Consumes the current PinByFile and returns a new PinByFile with keyvalues metadata set
-  pub fn set_metadata(mut self, keyvalues: HashMap<String, String>) -> PinByFile {
+  pub fn set_metadata(mut self, keyvalues: MetadataKeyValues) -> PinByFile {
     self.pinata_metadata = Some(PinMetadata {
       name: None,
       keyvalues,
@@ -317,7 +304,7 @@ impl PinByFile {
   /// Consumes the current PinByFile and returns a new PinByFile with keyvalues metadata set
   pub fn set_metadata_with_name<IntoStr>(
     mut self, name: IntoStr,
-    keyvalues: HashMap<String, String>
+    keyvalues: MetadataKeyValues
   ) -> PinByFile
     where IntoStr: Into<String>
   {
