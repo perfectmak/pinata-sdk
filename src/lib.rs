@@ -78,6 +78,7 @@
 
 #[cfg_attr(test, macro_use)]
 extern crate log;
+extern crate derive_builder;
 
 use std::fs;
 use std::path::Path;
@@ -258,6 +259,19 @@ impl PinataApi {
   /// This endpoint returns the total combined size for all content that you've pinned through Pinata
   pub async fn get_total_user_pinned_data(&self) ->  Result<TotalPinnedData, ApiError> {
     let response = self.client.get(&api_url("/data/userPinnedDataTotal"))
+      .send()
+      .await?;
+
+    self.parse_result(response).await
+  }
+
+  /// This returns data on what content the sender has pinned to IPFS from pinata
+  /// 
+  /// The purpose of this endpoint is to provide insight into what is being pinned, and how
+  /// long it has been pinned. The results of this call can be filtered using [PinListFilter](struct.PinListFilter.html).
+  pub async fn get_pin_list(&self, filters: PinListFilter) -> Result<PinList, ApiError> {
+    let response = self.client.get(&api_url("/data/pinList"))
+      .query(&filters)
       .send()
       .await?;
 

@@ -1,0 +1,39 @@
+---
+source: src/tests.rs
+expression: pin_list
+---
+PinList {
+    count: 1,
+    rows: [
+        PinListItem {
+            id: "cc7f924f-7246-42ce-a1c7-f0067ac02144",
+            ipfs_pin_hash: "Qme5npQ51psDHssScnXqeKoUvA7UizxhRCfZi6ewMiiHcn",
+            size: 36,
+            user_id: "6176135e-fd99-4af9-a27c-23dd9d8e0461",
+            date_pinned: "2020-04-19T15:07:36.700Z",
+            data_unpinned: None,
+            metadata: PinListMetadata {
+                name: Some(
+                    "old-metadata-name",
+                ),
+                keyvalues: Some(
+                    {
+                        "to_be_preserved": Float(
+                            5.5,
+                        ),
+                        "new_value": String(
+                            "awesome",
+                        ),
+                    },
+                ),
+            },
+            regions: [
+                PinListItemRegionPolicy {
+                    region_id: FRA1,
+                    desired_replication_count: 1,
+                    current_replication_count: 1,
+                },
+            ],
+        },
+    ],
+}

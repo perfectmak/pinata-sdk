@@ -1,8 +1,7 @@
+use insta::assert_debug_snapshot;
 use serde::Serialize;
 use std::collections::HashMap;
-use super::{PinataApi, HashPinPolicy, RegionPolicy, Region, PinByHash};
-use super::{PinJobsFilter, SortDirection, JobStatus, PinByJson, PinByFile};
-use super::{ChangePinMetadata, PinMetadata, MetadataValue};
+use super::*;
 
 fn get_api() -> PinataApi {
   let api_key = std::env::var("API_KEY").expect("API_KEY env required to run test");
@@ -55,11 +54,12 @@ async fn test_pin_by_hash_works() {
 
 #[tokio::test]
 async fn test_get_pin_jobs() {
-  let result = get_api().get_pin_jobs(PinJobsFilter::new()
+  let result = get_api().get_pin_jobs(PinJobsFilterBuilder::default()
     .set_sort(SortDirection::ASC)
     .set_status(JobStatus::Prechecking)
     .set_ipfs_pin_hash("Qmbsjf1f3Z2AUX6H4PcbyUSdzJ7YZrZfzF246iaikYZja7")
-    .set_limit(1)
+    .set_limit(1 as u16)
+    .build().unwrap()
   ).await;
 
   match result {
@@ -182,6 +182,7 @@ async fn test_change_hash_metadata_pin_querying_works() {
     random: &'static str
   }
   let api = get_api();
+
   let mut old_metadata = HashMap::new();
   old_metadata.insert("to_be_deleted".to_string(), MetadataValue::String("yes".into()));
   old_metadata.insert("to_be_preserved".to_string(), MetadataValue::Float(5.5));
@@ -199,19 +200,27 @@ async fn test_change_hash_metadata_pin_querying_works() {
   new_metadata.insert("new_value".to_string(), MetadataValue::String("awesome".into()));
   // deletes existing metadata
   new_metadata.insert("to_be_deleted".to_string(), MetadataValue::Delete);
-
-  let result = api.change_hash_metadata(ChangePinMetadata {
-    ipfs_pin_hash: pin_result.ipfs_hash,
+  api.change_hash_metadata(ChangePinMetadata {
+    ipfs_pin_hash: pin_result.ipfs_hash.clone(),
     metadata: PinMetadata {
       name: None, // we don't want to change the existing name
       keyvalues: new_metadata
     }
-  }).await;
+  }).await.unwrap();
 
   // confirm metadata is updated
+  let result = api.get_pin_list(PinListFilterBuilder::default()
+    .set_hash_contains(pin_result.ipfs_hash.clone())
+    .build()
+    .unwrap()
+  ).await;
+
+  println!("{:?}", result);
 
     match result {
-      Ok(_) => assert!(true),
+      Ok(pin_list) => {
+        assert_debug_snapshot!(pin_list);
+      },
       Err(e) => assert!(false, "{}", e),
     }
 }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use crate::api::metadata::{PinMetadata, MetadataKeyValues, MetadataValue};
+use derive_builder::Builder;
+use crate::api::metadata::{PinMetadata, PinListMetadata, MetadataKeyValues, MetadataValue};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 /// All the currently supported regions on Pinata
@@ -331,63 +332,32 @@ pub enum SortDirection {
   DESC,
 }
 
-#[derive(Clone, Default, Serialize)]
+#[derive(Builder, Clone, Default, Serialize)]
+#[builder(setter(into, strip_option, prefix = "set"), default)]
 /// Filter parameters for fetching PinJobs
 /// 
 /// Example of how to use this:
 /// ```
-/// use pinata_sdk::{PinJobsFilter, SortDirection, JobStatus};
+/// use pinata_sdk::{PinJobsFilterBuilder, PinJobsFilter, SortDirection, JobStatus};
 ///
-/// let filters = PinJobsFilter::new()
+/// let filters: PinJobsFilter = PinJobsFilterBuilder::default()
 ///   .set_sort(SortDirection::ASC)
-///   .set_status(JobStatus::Prechecking);
-///   // and change other possible filter set methods
+///   .set_status(JobStatus::Prechecking)
+///   .set_limit(1 as u16)
+///   // ...other possible filter set methods
+///   .build().unwrap();
 /// ```
 pub struct PinJobsFilter {
+  /// Sort the results by the date added to the pinning queue
   sort: Option<SortDirection>,
-  status: Option<JobStatus>,
-  ipfs_pin_hash: Option<String>,
-  limit: Option<u16>,
-  offset: Option<u64>,
-}
-
-impl PinJobsFilter {
-  /// Create a new PinJobsFilter.
-  /// 
-  /// It initialize all possible filters to None (the default)
-  pub fn new() -> PinJobsFilter {
-    PinJobsFilter::default()
-  }
-
-  /// Set a sort direction on the PinJobsFilter
-  pub fn set_sort(mut self, direction: SortDirection) -> PinJobsFilter {
-    self.sort = Some(direction);
-    self
-  }
-
   /// Set a status on the PinJobsFilter
-  pub fn set_status(mut self, status: JobStatus) -> PinJobsFilter {
-    self.status = Some(status);
-    self
-  }
-
+  status: Option<JobStatus>,
   /// Set a IPFS pin hash on the PinJobsFilter
-  pub fn set_ipfs_pin_hash<S: Into<String>>(mut self, hash: S) -> PinJobsFilter {
-    self.ipfs_pin_hash = Some(hash.into());
-    self
-  }
-
+  ipfs_pin_hash: Option<String>,
   /// Set limit on the amount of results per page
-  pub fn set_limit(mut self, limit: u16) -> PinJobsFilter {
-    self.limit = Some(limit);
-    self
-  }
-
+  limit: Option<u16>,
   /// Set the record offset for records returned. This is how to retrieve additional pages
-  pub fn set_offset(mut self, offset: u64) -> PinJobsFilter {
-    self.offset = Some(offset);
-    self
-  }
+  offset: Option<u64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -441,4 +411,118 @@ pub struct TotalPinnedData {
   pub pin_size_total: String,
   /// The total size of all content you have pinned with Pinata. This value is derived by multiplying the size of each piece of unique content by the number of times that content is replicated.
   pub pin_size_with_replications_total: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+/// Status used with [PinListFilterBuilder](struct.PinListFilterBuilder.html)
+/// to filter on pin list results.
+pub enum PinListFilterStatus {
+  /// For both pinned and unpinned records
+  All,
+  /// For just pinned records (hashes that are currently pinned)
+  Pinned,
+  /// For just unpinned records (previous hashes that are no longer being pinned on pinata)
+  Unpinned,
+}
+
+#[derive(Builder, Default, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[builder(setter(strip_option, prefix = "set"), default)]
+/// Options to filter your pin list based on a number of different options
+/// 
+/// Create and set values using [PinListFilterBuilder](struct.PinListFilterBuilder.html).
+/// 
+/// ```
+/// use pinata_sdk::PinListFilterBuilder;
+///
+/// let filter = PinListFilterBuilder::default()
+///   .set_hash_contains("QmWsZfQw98k9dfG1sDZB3z8YqMtxG9gYCyddgZGWq4w6Z3".to_string())
+///   .build()
+///   .unwrap();
+/// ```
+pub struct PinListFilter {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// Filter on alphanumeric characters inside of pin hashes. Hashes which do not include the characters passed in will not be returned 
+  hash_contains: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// Exclude pin records that were pinned before the passed in "pinStart" datetime
+  /// (must be in ISO_8601 format)
+  pin_start: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// (must be in ISO_8601 format) - Exclude pin records that were pinned after the passed in "pinEnd" datetime
+  pin_end: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// (must be in ISO_8601 format) - Exclude pin records that were unpinned before the passed in "unpinStart" datetime
+  unpin_start: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// (must be in ISO_8601 format) - Exclude pin records that were unpinned after the passed in "unpinEnd" datetime
+  unpin_end: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// The minimum byte size that pin record you're looking for can have
+  pin_size_min: Option<usize>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// The maximum byte size that pin record you're looking for can have
+  pin_size_max: Option<usize>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// The status of pin lists results
+  status: Option<PinListFilterStatus>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// Filter on metadata name or metadata keyvalues.
+  /// If specifying a `metadata[keyvalues]` filter, you need to ensure that you encode the values as the recommended
+  /// JSON accordingly. See the pinata docs [here](https://pinata.cloud/documentation#PinList) under the 'Metadata Querying'
+  /// section for more details.
+  metadata: Option<HashMap<String, String>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// This sets the amount of records that will be returned per API response. (Max 1000)
+  page_limit: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  /// This tells the API how far to offset the record responses. For example, if there's 30 records that match your query, and you passed in a pageLimit of 10, providing a pageOffset of 10 would return records 11-20
+  page_offset: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// RegionPolicy active on the PinListItem
+pub struct PinListItemRegionPolicy {
+  /// Region this content is expected to be pinned in
+  pub region_id: Region,
+  /// The number of replications desired in this region
+  pub desired_replication_count: u8,
+  /// The number of times this content has been replicated so far
+  pub current_replication_count: u8,
+}
+
+#[derive(Debug, Deserialize)]
+/// A pinned item gotten from get PinList request
+/// 
+/// This is usually as part of the PinList struct which is gotten as response
+pub struct PinListItem {
+  /// The id of this pin item record
+  pub id: String,
+  /// The IPFS multihash for this items content
+  pub ipfs_pin_hash: String,
+  /// Size in bytes of the content pinned
+  pub size: usize,
+  /// Users Pinata id
+  pub user_id: String,
+  /// ISO 8601 timestamp for when this content was pinned.
+  pub date_pinned: String,
+  /// ISO 8601 timestamp for when this content was unpinned.
+  /// 
+  /// Is None for content that is not yet unpinned
+  pub data_unpinned: Option<String>,
+  /// Metadata of the original uploaded files
+  pub metadata: PinListMetadata,
+  /// Region Policy set on the item
+  pub regions: Vec<PinListItemRegionPolicy>,
+}
+
+#[derive(Debug, Deserialize)]
+/// Result of request to get pinList
+pub struct PinList {
+  /// Total number of pin records that exist for the query filters passed
+  pub count: u128,
+  /// List of pinned item in the result set
+  pub rows: Vec<PinListItem>,
 }
