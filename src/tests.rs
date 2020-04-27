@@ -198,6 +198,7 @@ async fn test_change_hash_metadata_pin_querying_works() {
   // update metadata information
   let mut new_metadata = HashMap::new();
   new_metadata.insert("new_value".to_string(), MetadataValue::String("awesome".into()));
+
   // deletes existing metadata
   new_metadata.insert("to_be_deleted".to_string(), MetadataValue::Delete);
   api.change_hash_metadata(ChangePinMetadata {
