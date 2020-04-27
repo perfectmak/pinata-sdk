@@ -78,17 +78,20 @@
 
 #[cfg_attr(test, macro_use)]
 extern crate log;
+extern crate derive_builder;
 
 use std::fs;
 use std::path::Path;
-use reqwest::{Client, ClientBuilder, header::HeaderMap, multipart::{Form, Part}};
+use reqwest::{Client, ClientBuilder, header::HeaderMap, multipart::{Form, Part}, Response};
 use walkdir::WalkDir;
-use serde::Serialize;
+use serde::{Serialize};
+use serde::de::DeserializeOwned;
 use errors::Error;
 use utils::api_url;
 use api::internal::*;
 
 pub use api::data::*;
+pub use api::metadata::*;
 pub use errors::ApiError;
 
 mod api;
@@ -128,11 +131,7 @@ impl PinataApi {
       .send()
       .await?;
 
-    if response.status().is_success() {
-      Ok(())
-    } else {
-      Err(ApiError::GenericError("not_authenticated".to_string()))
-    }
+    self.parse_ok_result(response).await
   }
 
   /// Change the pin policy for an individual piece of content.
@@ -146,12 +145,7 @@ impl PinataApi {
       .send()
       .await?;
 
-    if response.status().is_success() {
-      Ok(())
-    } else {
-      let error = response.json::<PinataApiError>().await?;
-      Err(ApiError::GenericError(error.message()))
-    }
+    self.parse_ok_result(response).await
   }
 
   /// Add a hash to Pinata for asynchronous pinning.
@@ -164,13 +158,7 @@ impl PinataApi {
       .send()
       .await?;
 
-    if response.status().is_success() {
-      let result = response.json::<PinByHashResult>().await?;
-      Ok(result)
-    } else {
-      let error = response.json::<PinataApiError>().await?;
-      Err(ApiError::GenericError(error.message()))
-    }
+    self.parse_result(response).await
   }
 
   /// Retrieve a list of all the pins that are currently in the pin queue for your user
@@ -180,13 +168,7 @@ impl PinataApi {
       .send()
       .await?;
 
-    if response.status().is_success() {
-      let result = response.json::<PinJobs>().await?;
-      Ok(result)
-    } else {
-      let error = response.json::<PinataApiError>().await?;
-      Err(ApiError::GenericError(error.message()))
-    }
+    self.parse_result(response).await
   }
 
   /// Pin any JSON serializable object to Pinata IPFS nodes.
@@ -198,13 +180,7 @@ impl PinataApi {
       .send()
       .await?;
 
-    if response.status().is_success() {
-      let result = response.json::<PinnedObject>().await?;
-      Ok(result)
-    } else {
-      let error = response.json::<PinataApiError>().await?;
-      Err(ApiError::GenericError(error.message()))
-    }
+    self.parse_result(response).await
   }
 
   /// Pin any file or folder to Pinata's IPFS nodes.
@@ -258,13 +234,7 @@ impl PinataApi {
       .send()
       .await?;
 
-    if response.status().is_success() {
-      let result = response.json::<PinnedObject>().await?;
-      Ok(result)
-    } else {
-      let error = response.json::<PinataApiError>().await?;
-      Err(ApiError::GenericError(error.message()))
-    }
+    self.parse_result(response).await
   }
 
   /// Unpin content previously uploaded to the Pinata's IPFS nodes.
@@ -273,6 +243,54 @@ impl PinataApi {
       .send()
       .await?;
 
+    self.parse_ok_result(response).await
+  }
+
+  /// Change name and custom key values associated for a piece of content stored on Pinata.
+  pub async fn change_hash_metadata(&self, change: ChangePinMetadata) -> Result<(), ApiError> {
+    let response = self.client.put(&api_url("/pinning/hashMetadata"))
+      .json(&change)
+      .send()
+      .await?;
+
+    self.parse_ok_result(response).await
+  }
+
+  /// This endpoint returns the total combined size for all content that you've pinned through Pinata
+  pub async fn get_total_user_pinned_data(&self) ->  Result<TotalPinnedData, ApiError> {
+    let response = self.client.get(&api_url("/data/userPinnedDataTotal"))
+      .send()
+      .await?;
+
+    self.parse_result(response).await
+  }
+
+  /// This returns data on what content the sender has pinned to IPFS from pinata
+  /// 
+  /// The purpose of this endpoint is to provide insight into what is being pinned, and how
+  /// long it has been pinned. The results of this call can be filtered using [PinListFilter](struct.PinListFilter.html).
+  pub async fn get_pin_list(&self, filters: PinListFilter) -> Result<PinList, ApiError> {
+    let response = self.client.get(&api_url("/data/pinList"))
+      .query(&filters)
+      .send()
+      .await?;
+
+    self.parse_result(response).await
+  }
+
+  async fn parse_result<R>(&self, response: Response) -> Result<R, ApiError> 
+    where R: DeserializeOwned
+  {
+    if response.status().is_success() {
+      let result = response.json::<R>().await?;
+      Ok(result)
+    } else {
+      let error = response.json::<PinataApiError>().await?;
+      Err(ApiError::GenericError(error.message()))
+    }
+  }
+
+  async fn parse_ok_result(&self, response: Response) -> Result<(), ApiError> {
     if response.status().is_success() {
       Ok(())
     } else {

@@ -1,7 +1,7 @@
+use insta::assert_debug_snapshot;
 use serde::Serialize;
 use std::collections::HashMap;
-use super::{PinataApi, HashPinPolicy, RegionPolicy, Region, PinByHash};
-use super::{PinJobsFilter, SortDirection, JobStatus, PinByJson, PinByFile};
+use super::*;
 
 fn get_api() -> PinataApi {
   let api_key = std::env::var("API_KEY").expect("API_KEY env required to run test");
@@ -54,11 +54,12 @@ async fn test_pin_by_hash_works() {
 
 #[tokio::test]
 async fn test_get_pin_jobs() {
-  let result = get_api().get_pin_jobs(PinJobsFilter::new()
+  let result = get_api().get_pin_jobs(PinJobsFilterBuilder::default()
     .set_sort(SortDirection::ASC)
     .set_status(JobStatus::Prechecking)
     .set_ipfs_pin_hash("Qmbsjf1f3Z2AUX6H4PcbyUSdzJ7YZrZfzF246iaikYZja7")
-    .set_limit(1)
+    .set_limit(1 as u16)
+    .build().unwrap()
   ).await;
 
   match result {
@@ -170,6 +171,71 @@ async fn test_unpin() {
 
   match result {
     Ok(_) => assert!(true),
+    Err(e) => assert!(false, "{}", e),
+  }
+}
+
+#[tokio::test]
+async fn test_change_hash_metadata_pin_querying_works() {
+  #[derive(Serialize)]
+  struct PinData {
+    random: &'static str
+  }
+  let api = get_api();
+
+  let mut old_metadata = HashMap::new();
+  old_metadata.insert("to_be_deleted".to_string(), MetadataValue::String("yes".into()));
+  old_metadata.insert("to_be_preserved".to_string(), MetadataValue::Float(5.5));
+
+  // pin data with metadata
+  let pin_result = api.pin_json(
+    PinByJson::new(PinData { random: "Custom metadata" })
+      .set_metadata_with_name("old-metadata-name", old_metadata)
+  )
+    .await
+    .unwrap();
+
+  // update metadata information
+  let mut new_metadata = HashMap::new();
+  new_metadata.insert("new_value".to_string(), MetadataValue::String("awesome".into()));
+  // deletes existing metadata
+  new_metadata.insert("to_be_deleted".to_string(), MetadataValue::Delete);
+  api.change_hash_metadata(ChangePinMetadata {
+    ipfs_pin_hash: pin_result.ipfs_hash.clone(),
+    metadata: PinMetadata {
+      name: None, // we don't want to change the existing name
+      keyvalues: new_metadata
+    }
+  }).await.unwrap();
+
+  // confirm metadata is updated
+  let result = api.get_pin_list(PinListFilterBuilder::default()
+    .set_hash_contains(pin_result.ipfs_hash.clone())
+    .build()
+    .unwrap()
+  ).await;
+
+  println!("{:?}", result);
+
+    match result {
+      Ok(pin_list) => {
+        assert_debug_snapshot!(pin_list);
+      },
+      Err(e) => assert!(false, "{}", e),
+    }
+}
+
+#[tokio::test]
+async fn test_get_total_user_pinned_data() {
+  let result = get_api().get_total_user_pinned_data().await;
+
+  match result {
+    Ok(data) => {
+      debug!("{:?}", data);
+      assert_ne!(data.pin_count, 0);
+      assert_ne!(data.pin_size_total, "0");
+      assert_ne!(data.pin_size_with_replications_total, "0");
+    }
     Err(e) => assert!(false, "{}", e),
   }
 }
