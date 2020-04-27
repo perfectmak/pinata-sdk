@@ -215,3 +215,18 @@ async fn test_change_hash_metadata_pin_querying_works() {
       Err(e) => assert!(false, "{}", e),
     }
 }
+
+#[tokio::test]
+async fn test_get_total_user_pinned_data() {
+  let result = get_api().get_total_user_pinned_data().await;
+
+  match result {
+    Ok(data) => {
+      debug!("{:?}", data);
+      assert_ne!(data.pin_count, 0);
+      assert_ne!(data.pin_size_total, "0");
+      assert_ne!(data.pin_size_with_replications_total, "0");
+    }
+    Err(e) => assert!(false, "{}", e),
+  }
+}

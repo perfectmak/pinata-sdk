@@ -431,3 +431,14 @@ pub struct PinnedObject {
   /// Timestamp for your content pinning in ISO8601 format
   pub timestamp: String
 }
+
+#[derive(Debug, Deserialize)]
+/// Results of a call to get total users pinned data
+pub struct TotalPinnedData {
+  /// The number of pins you currently have pinned with Pinata
+  pub pin_count: u128,
+  /// The total size of all unique content you have pinned with Pinata (expressed in bytes)
+  pub pin_size_total: String,
+  /// The total size of all content you have pinned with Pinata. This value is derived by multiplying the size of each piece of unique content by the number of times that content is replicated.
+  pub pin_size_with_replications_total: String,
+}
