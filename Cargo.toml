@@ -1,6 +1,6 @@
 [package]
 name = "pinata-sdk"
-version = "0.1.1"
+version = "1.0.0"
 keywords = ["ipfs", "api", "pinata"]
 categories = ["api-bindings", "web-programming::http-client"]
 description = "Rust SDK for the Pinata IPFS platform"

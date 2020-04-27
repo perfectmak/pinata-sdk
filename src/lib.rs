@@ -1,14 +1,4 @@
 #![deny(missing_docs)]
-//! The `pinata_sdk` provides the easieset path for interacting with the [Pinata API](https://pinata.cloud/documentation#GettingStarted).
-//! 
-//! ## Setup
-//! Add the crate as a dependency to your codebase
-//! 
-//! ```toml
-//! [dependencies]
-//! pinata_sdk = "0.1.1"
-//! ```
-//!  
 //! ## Initializing the API
 //! ```
 //! use pinata_sdk::PinataApi;
