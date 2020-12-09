@@ -10,7 +10,7 @@ Add the crate as a dependency to your codebase
 
 ```toml
 [dependencies]
-pinata_sdk = "1.0.0"
+pinata-sdk = "1.0.0"
 ```
 
 {{readme}}
