@@ -22,4 +22,4 @@ log = "0.4.14"
 derive_builder = "0.10.2"
 
 [dev-dependencies]
-insta = "0.16.0"
+insta = "1.8.0"
