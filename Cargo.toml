@@ -1,6 +1,6 @@
 [package]
 name = "pinata-sdk"
-version = "1.0.0"
+version = "1.1.0"
 keywords = ["ipfs", "api", "pinata"]
 categories = ["api-bindings", "web-programming::http-client"]
 description = "Rust SDK for the Pinata IPFS platform"
@@ -12,14 +12,14 @@ license = "MIT OR Apache-2.0"
 edition = "2018"
 
 [dependencies]
-reqwest = { version = "0.10", features = ["json"] }
-tokio = { version = "0.2", features = ["full"] }
-serde = { version = "1.0.105", features = ["derive"] }
-serde_json = "1.0"
-walkdir = "2.3.1"
-failure = { version = "0.1.7" }
-log = "0.4.8"
-derive_builder = "0.9.0"
+reqwest = { version = "0.11.7", features = ["json", "multipart"] }
+tokio = { version = "1.14.0", features = ["full"] }
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.72"
+walkdir = "2.3.2"
+failure = { version = "0.1.8" }
+log = "0.4.14"
+derive_builder = "0.10.2"
 
 [dev-dependencies]
-insta = "0.16.0"
+insta = "1.8.0"
