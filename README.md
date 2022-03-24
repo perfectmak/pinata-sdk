@@ -15,7 +15,6 @@ pinata_sdk = "1.1.0"
 ```
 
 ### Initializing the API
-
 ```rust
 use pinata_sdk::PinataApi;
 
@@ -75,9 +74,14 @@ if let Ok(pinned_object) = result {
 You can unpin using the `PinataApi::unpin()` function by passing in the CID hash of the already
 pinned content.
 
+
 ## Contribution Guide
 
 Feel free to contribute. Please ensure that an issue is exists that describes the feature or bugfix you are planning to contribute.
+
+Also, this README is generated using the [cargo-readme](https://github.com/livioribeiro/cargo-readme) crate from the `README.tpl` file, so 
+update that file and run `cargo readme > README.md` to update the README's content. (This process can definitely be improved by running this 
+step in a build script).
 
 ## License
 

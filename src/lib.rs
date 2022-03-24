@@ -17,7 +17,9 @@
 //! ```
 //! 
 //! ## Usage
+//! 
 //! ### 1. Pinning a file
+//! 
 //! Send a file to pinata for direct pinning to IPFS.
 //! 
 //! ```
@@ -39,6 +41,7 @@
 //! of the file to be pinned on pinata.
 //! 
 //! ### 2. Pinning a JSON object
+//! 
 //! You can send a JSON serializable to pinata for direct pinning to IPFS.
 //! 
 //! ```
@@ -62,6 +65,7 @@
 //! ```
 //! 
 //! ### 3. Unpinning
+//!
 //! You can unpin using the `PinataApi::unpin()` function by passing in the CID hash of the already
 //! pinned content.
 //! 
