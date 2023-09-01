@@ -10,6 +10,9 @@ pub enum Region {
   FRA1,
   /// New York City, USA (max 2 replications)
   NYC1,
+  #[serde(rename = "US-EAST-1")]
+  /// US East
+  USE1,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -408,9 +411,9 @@ pub struct TotalPinnedData {
   /// The number of pins you currently have pinned with Pinata
   pub pin_count: u128,
   /// The total size of all unique content you have pinned with Pinata (expressed in bytes)
-  pub pin_size_total: String,
+  pub pin_size_total: u128,
   /// The total size of all content you have pinned with Pinata. This value is derived by multiplying the size of each piece of unique content by the number of times that content is replicated.
-  pub pin_size_with_replications_total: String,
+  pub pin_size_with_replications_total: u128,
 }
 
 #[derive(Clone, Debug, Serialize)]
