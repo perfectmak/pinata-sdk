@@ -234,8 +234,8 @@ async fn test_get_total_user_pinned_data() {
     Ok(data) => {
       debug!("{:?}", data);
       assert_ne!(data.pin_count, 0);
-      assert_ne!(data.pin_size_total, "0");
-      assert_ne!(data.pin_size_with_replications_total, "0");
+      assert_ne!(data.pin_size_total, 0);
+      assert_ne!(data.pin_size_with_replications_total, 0);
     }
     Err(e) => assert!(false, "{}", e),
   }
